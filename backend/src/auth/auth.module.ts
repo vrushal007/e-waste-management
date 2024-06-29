@@ -8,10 +8,12 @@ import { User } from 'src/users/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import { Recycler } from 'src/recycler/entities/recycler.entity';
 import { Collector } from 'src/collectors/entities/collector.entity';
+import { MailService } from 'src/mail/mail.service';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports : [TypeOrmModule.forFeature([Auth, Role, User, Recycler, Collector])],
   controllers: [AuthController, AuthUserController],
-  providers: [AuthService, JwtService],
+  providers: [AuthService, JwtService, MailService],
 })
 export class AuthModule {}
