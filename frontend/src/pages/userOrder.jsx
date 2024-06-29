@@ -1,8 +1,9 @@
+// components
 import { useSnackbar } from "notistack";
-import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+import { useState, useEffect } from "react";
 
-import { Check, Cancel } from "@mui/icons-material";
+import { Edit, Cancel } from "@mui/icons-material";
 import { GridActionsCellItem } from "@mui/x-data-grid";
 // @mui
 import { Card, Stack, Container, Typography } from "@mui/material";
@@ -10,20 +11,22 @@ import { Card, Stack, Container, Typography } from "@mui/material";
 import Scrollbar from "../components/scrollbar";
 // sections
 import CustomDataTable from "../components/custom/CustomDataTable";
+import RecyclerOrderForm from "../sections/recyclers/recycler-order-form";
 import {
-  useApproveUserMutation,
-  useGetUsersQuery,
-  useRejectUserMutation,
-} from "../redux/services/user.service";
-
+  useGetOrdersQuery,
+  useCancelOrderMutation,
+} from "../redux/services/order.service";
 // ----------------------------------------------------------------------
 
-export default function UserPage() {
-  const { data, isLoading, isFetching } = useGetUsersQuery();
+export default function UserOrderPage() {
+  const { data, isLoading, isFetching } = useGetOrdersQuery();
 
-  const [approveUser, { isLoading: isApproving }] = useApproveUserMutation();
+  const [cancelRecyclerOrder, { isLoading: isCancelling }] =
+    useCancelOrderMutation();
 
-  const [rejectUser, { isLoading: isRejecting }] = useRejectUserMutation();
+  const [openFilter, setOpenFilter] = useState(false);
+
+  const [openRow, setOpenRow] = useState(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -34,6 +37,11 @@ export default function UserPage() {
       setRows(data?.data);
     }
   }, [data]);
+
+  const handleCloseFilter = () => {
+    setOpenFilter(false);
+    // setEdit(false);
+  };
 
   const columns = [
     { field: "itemName", headerName: "Item Name", flex: 1 },
@@ -52,15 +60,16 @@ export default function UserPage() {
       flex: 1,
       getActions: (params) => [
         <GridActionsCellItem
-          icon={<Check />}
+          icon={<Edit />}
           onClick={(e) => {
-            handleApproveUser(e, params.row);
+            setOpenRow(params.row);
+            setOpenFilter(true);
           }}
         />,
         <GridActionsCellItem
           icon={<Cancel />}
           onClick={(e) => {
-            handleRejectUser(e, params.row);
+            cancelOrder(params.row.id);
           }}
           color="error"
         />,
@@ -68,44 +77,27 @@ export default function UserPage() {
     },
   ];
 
-  const handleApproveUser = async (e, row) => {
+  const cancelOrder = async () => {
     try {
-      const resultAction = await approveUser({
-        id: row.id,
+      const resultAction = await cancelRecyclerOrder({
+        id: openRow?.id,
       });
       if (resultAction?.data?.success) {
-        enqueueSnackbar("User approved successfully.", {
+        enqueueSnackbar("Order cancelled successfully", {
           variant: "success",
         });
       } else {
-        enqueueSnackbar("Failed to Approve user", { variant: "error" });
+        enqueueSnackbar("Failed to cancel order", { variant: "error" });
       }
     } catch (error) {
-      enqueueSnackbar("Failed to Approve User", { variant: "error" });
-    }
-  };
-
-  const handleRejectUser = async (e, row) => {
-    try {
-      const resultAction = await rejectUser({
-        id: row.id,
-      });
-      if (resultAction?.data?.success) {
-        enqueueSnackbar("User rejected successfully.", {
-          variant: "success",
-        });
-      } else {
-        enqueueSnackbar("Failed to reject user", { variant: "error" });
-      }
-    } catch (error) {
-      enqueueSnackbar("Failed to reject User", { variant: "error" });
+      enqueueSnackbar("Failed to cancel order", { variant: "error" });
     }
   };
 
   return (
     <div>
       <Helmet>
-        <title> Assigned Orders </title>
+        <title> User Orders </title>
       </Helmet>
 
       <Container>
@@ -116,8 +108,15 @@ export default function UserPage() {
           mb={5}
         >
           <Typography variant="h4" gutterBottom>
-            Assigned Orders
+            User Orders
           </Typography>
+
+          <RecyclerOrderForm
+            open={openFilter}
+            onClose={handleCloseFilter}
+            openRow={openRow}
+            edit
+          />
         </Stack>
 
         <Card>

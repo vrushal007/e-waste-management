@@ -1,16 +1,18 @@
-import { fetchBaseQuery } from "@reduxjs/toolkit/dist/query";
 import { Mutex } from "async-mutex";
-import { login, logout } from "../slices/auth.slice";
-import { setToast } from "../slices/toast.slice";
+import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+import { setToast } from "./slices/toast.slice";
+import { login, logout } from "./slices/auth.slice";
 
 const mutex = new Mutex();
 export const extendedBaseQuery = async (args, api, extraOptions) => {
   // Update base URL based on selected environment
 
   const modifiedBaseQuery = fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_URL,
+    baseUrl: import.meta.env.VITE_API_URL,
     mode: "cors",
     prepareHeaders: (headers, { getState }) => {
+      // eslint-disable-next-line no-unsafe-optional-chaining
       const { accessToken } = getState()?.auth?.user;
       if (accessToken) {
         headers.set("authorization", `Bearer ${accessToken}`);
@@ -23,7 +25,6 @@ export const extendedBaseQuery = async (args, api, extraOptions) => {
     await mutex.waitForUnlock();
 
     let result = await modifiedBaseQuery(args, api, extraOptions);
-
     if (result.error) {
       if (result.error.status === 401) {
         if (!mutex.isLocked()) {
@@ -66,6 +67,7 @@ export const extendedBaseQuery = async (args, api, extraOptions) => {
           result = await modifiedBaseQuery(args, api, extraOptions);
         }
       } else {
+        console.log("errorsssss", result.error);
         api.dispatch(
           setToast({
             variant: "error",

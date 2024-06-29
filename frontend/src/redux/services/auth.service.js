@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({ baseUrl: process.env.REACT_APP_API_URL }),
+  baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_API_URL }),
   tagTypes: ["Auth"],
   endpoints: (builder) => ({
     login: builder.mutation({
@@ -10,7 +10,13 @@ export const authApi = createApi({
         url: "/auth/login",
         method: "POST",
         body,
-        providesTags: ["Auth"],
+      }),
+    }),
+    signup: builder.mutation({
+      query: (body) => ({
+        url: "/auth/sign-up",
+        method: "POST",
+        body,
       }),
     }),
     forgotPassword: builder.mutation({
@@ -18,7 +24,6 @@ export const authApi = createApi({
         url: "/auth/forgotPassword",
         method: "POST",
         body,
-        providesTags: ["Auth"],
       }),
     }),
     resetPassword: builder.mutation({
@@ -38,7 +43,6 @@ export const authApi = createApi({
         url: "/auth/change-generated-password",
         method: "POST",
         body,
-        providesTags: ["Auth"],
       }),
     }),
     refreshToken: builder.mutation({
@@ -46,7 +50,6 @@ export const authApi = createApi({
         url: "/auth/refreshToken",
         method: "POST",
         body,
-        providesTags: ["Auth"],
       }),
     }),
   }),
@@ -54,6 +57,7 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
+  useSignupMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useVerifyUserMutation,
